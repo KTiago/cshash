@@ -62,7 +62,7 @@ func bytesToInt(bytes []byte) int{
 	return result
 }
 
-func Hash(bytes []byte) string{
+func Fingerprint(bytes []byte) string{
 	hash := md5.Sum(Parse(bytes))
 	return hex.EncodeToString(hash[:])
 }
