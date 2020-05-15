@@ -6,7 +6,6 @@ import (
 	"github.com/KTiago/csf"
 	"io/ioutil"
 	"encoding/base64"
-	//"github.com/KTiago/csf"
 )
 
 var (
@@ -34,10 +33,21 @@ func main() {
 			}
 		}
 	} else {
-		//TODO handle base64 and PEM input file !
-		certDer, err = ioutil.ReadFile(*input)
-		if err != nil {
-			panic(err)
+		if *format == "DER"{
+			certDer, err = ioutil.ReadFile(*input)
+			if err != nil {
+				panic(err)
+			}
+		} else if *format == "PEM" || *format == "base64"{
+			cert, err := ioutil.ReadFile(*input)
+			if err != nil {
+				panic(err)
+			}
+			parsedCert := csf.ParsePEM(string(cert))
+			certDer, err = base64.StdEncoding.DecodeString(parsedCert)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 	csfDigest := csf.Fingerprint(certDer)

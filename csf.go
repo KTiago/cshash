@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"math"
+	"strings"
 )
 
 const(
@@ -60,6 +61,15 @@ func bytesToInt(bytes []byte) int{
 		result += int(bytes[i]) * int(math.Pow(256, float64((len(bytes) - i - 1))))
 	}
 	return result
+}
+
+func ParsePEM(cert string) string{
+	cert = strings.Replace(cert, "-BEGIN CERTIFICATE-", "", 1)
+	cert = strings.Replace(cert, "-END CERTIFICATE-", "", 1)
+	cert = strings.Replace(cert, "-", "", -1)
+	cert = strings.Replace(cert, " ", "", -1)
+	cert = strings.Replace(cert, "\n", "", -1)
+	return cert
 }
 
 func Fingerprint(bytes []byte) string{
