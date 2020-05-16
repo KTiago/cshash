@@ -15,7 +15,7 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Println( "Usage: csf [options] [certificate in base64]\nPrint the Certificate Structure Fingeprint (csf) of the given base64 DER certificate.\n\nWith no Input file, or when Input file is -, read from standard input. (base64 only)\n")
+		fmt.Println( "Usage: csf [options] [certificate in base64]\nPrint the Certificate Structure Fingerprint (csf) of the given base64 DER certificate.\n\nWith no Input file, or when Input file is -, read from standard input. (base64 only)")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
