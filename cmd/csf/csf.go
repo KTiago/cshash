@@ -20,21 +20,21 @@ func main() {
 	}
 	flag.Parse()
 	args := flag.Args()
-	certDer := []byte{}
+	certDER := []byte{}
 	var err error
 	if *input == "-"{
 		if len(args) != 1{
 			flag.Usage()
 		}else{
 			cert := args[0]
-			certDer, err = base64.StdEncoding.DecodeString(cert)
+			certDER, err = base64.StdEncoding.DecodeString(cert)
 			if err != nil {
 				panic(err)
 			}
 		}
 	} else {
 		if *format == "DER"{
-			certDer, err = ioutil.ReadFile(*input)
+			certDER, err = ioutil.ReadFile(*input)
 			if err != nil {
 				panic(err)
 			}
@@ -43,13 +43,12 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			parsedCert := csf.ParsePEM(string(cert))
-			certDer, err = base64.StdEncoding.DecodeString(parsedCert)
+			certDER, err = csf.PEMToDER(string(cert))
 			if err != nil {
 				panic(err)
 			}
 		}
 	}
-	csfDigest := csf.Fingerprint(certDer)
+	csfDigest := csf.FingerprintString(certDER)
 	fmt.Printf("%s\n",csfDigest)
 }

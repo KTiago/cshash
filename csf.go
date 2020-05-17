@@ -1,9 +1,14 @@
 package csf
 
 import (
+	"bytes"
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -16,6 +21,7 @@ const (
 	NULL              = 0x05
 	OBJECT_IDENTIFIER = 0x06
 	OBJECT_DESCRIPTOR = 0x07
+	PRINTABLE_STRING  = 0x13
 	SEQUENCE          = 0x30
 	SET               = 0x31
 	VERSION           = 0xA0
@@ -32,6 +38,23 @@ const (
 	CRL_DISTRIBUTION_POINTS = 0x0551D1F
 )
 
+var TYPE = map[int]string{
+	BOOLEAN : `"BOOLEAN"`,
+	INTEGER : `"INTEGER"`,
+	BIT_STRING  : `"BIT_STRING"`,
+	OCTET_STRING : `"OCTET_STRING"`,
+	NULL : `"NULL"`,
+	OBJECT_IDENTIFIER : `"OBJECT_IDENTIFIER"`,
+	OBJECT_DESCRIPTOR : `"OBJECT_DESCRIPTOR"`,
+	SEQUENCE          : `"SEQUENCE"`,
+	SET               : `"SET"`,
+	VERSION           : `"VERSION"`,
+	ISSUER_UNIQUE_ID  : `"ISSUER_UNIQUE_ID"`,
+	SUBJECT_UNIQUE_ID : `"SUBJECT_UNIQUE_ID"`,
+	EXTENSION         : `"EXTENSION"`,
+	PRINTABLE_STRING  : `"PRINTABLE_STRING"`,
+}
+
 type ParseError struct {
 	Msg string
 }
@@ -42,6 +65,14 @@ func (e *ParseError) Error() string {
 
 func new(text string) error {
 	return &ParseError{text}
+}
+
+func byteToString(value byte) string{
+	result, exists := TYPE[int(value)]
+	if exists{
+		return result
+	}
+	return `"UNKNOWN"`
 }
 
 func shouldBeIncluded(identifier []byte) bool {
@@ -69,7 +100,30 @@ func bytesToInt(bytes []byte) int {
 	return result
 }
 
-func ParsePEM(cert string) string {
+func OIDToString(bytes []byte) string{
+	result := ""
+	if len(bytes) == 0{
+		return result
+	}
+	result += strconv.Itoa(int(bytes[0]) / 40) + "." + strconv.Itoa(int(bytes[0]) % 40)
+	value := 0
+	for i := 1; i < len(bytes); i++{
+		if int(bytes[i]) < 128 && value == 0{
+			result += "." + strconv.Itoa(int(bytes[i]))
+		} else if int(bytes[i]) < 128 && value != 0{
+			value *= 128
+			value += int(bytes[i])
+			result += "." + strconv.Itoa(value)
+			value = 0
+		} else{
+			value *= 128
+			value += int(bytes[i]) - 128
+		}
+	}
+	return result
+}
+
+func PEMToBase64(cert string) string {
 	cert = strings.Replace(cert, "-BEGIN CERTIFICATE-", "", 1)
 	cert = strings.Replace(cert, "-END CERTIFICATE-", "", 1)
 	cert = strings.Replace(cert, "-", "", -1)
@@ -78,15 +132,98 @@ func ParsePEM(cert string) string {
 	return cert
 }
 
-func Fingerprint(bytes []byte) string {
-	hash := md5.Sum(Parse(bytes))
-	return hex.EncodeToString(hash[:])
+func PEMToDER(cert string) ([]byte, error){
+	certBase64 := PEMToBase64(cert)
+	certDER, err := base64.StdEncoding.DecodeString(certBase64)
+	return certDER, err
+}
+
+func prettyPrint(data string) string{
+	src := []byte(data)
+	dst := &bytes.Buffer{}
+	if err := json.Indent(dst, src, "", "  "); err != nil {
+		panic(err)
+	}
+	return dst.String()
+}
+
+func FingerprintString(certDER []byte) string {
+	parsed := strings.Join(ParsePrintable(certDER), "")
+	//fmt.Println(parsed)
+	fmt.Println(prettyPrint(parsed))
+	data := []byte(parsed)
+	csf := md5.Sum(data)
+	return hex.EncodeToString(csf[:])
+}
+
+func Fingerprint(certDER []byte) string {
+	parsed := Parse(certDER)
+	csf := md5.Sum(parsed)
+	return hex.EncodeToString(csf[:])
 }
 
 /*
 Given the bytes of a DER encoded X.509 certificate, returns an array of bytes that is unique
 to the ASN1 structure of the certificate and does not depend on the contents of the certificate.
 */
+//TODO TAKE NESTED NATURE INTO ACCOUNT
+func ParsePrintable(bytes []byte) (structure []string) {
+	if bytes == nil {
+		return
+	}
+	i := 0
+	includeObject := false
+	structure = append(structure, "{")
+	for {
+		if i == len(bytes) {
+			break
+		} else if i != 0{
+			structure = append(structure, ",")
+		}
+		type_ := bytes[i]
+		structure = append(structure, byteToString(type_))
+		i += 1
+		// Reads length of the value and increments cursor accordingly
+		length := 0
+		if bytes[i] < 128 {
+			length = int(bytes[i])
+			i += 1
+		} else if bytes[i] > 128 {
+			lengthLength := int(bytes[i] & 0x7f)
+			length = bytesToInt(bytes[i+1 : i+1+lengthLength])
+			i += lengthLength + 1
+		} else {
+			length = 0
+			i += 1
+		}
+		if isKnownComposite(type_) { // For composite objects, recursively parse the inner data
+			parsed := ParsePrintable(bytes[i : i+length])
+			structure = append(structure, ":")
+			structure = append(structure, parsed...)
+		} else if type_ == OBJECT_IDENTIFIER { // Adds content of object identifier
+			structure = append(structure, `:"`+OIDToString(bytes[i:i+length])+`"`)
+			if shouldBeIncluded(bytes[i : i+length]) { // For some specific objects, we include the content in the hash
+				includeObject = true
+			}
+		} else if (type_ == OCTET_STRING || type_ == BIT_STRING) && includeObject {
+			structure = append(structure, `:"`+hex.EncodeToString(bytes[i:i+length])+`"`)
+			includeObject = false
+		} else if type_ == NULL{
+			structure = append(structure, `:""`)
+		} else {
+			structure = append(structure, `:"REMOVED"`)
+		}
+		i += length
+	}
+	structure = append(structure, "}")
+	return structure
+}
+
+/*
+Given the bytes of a DER encoded X.509 certificate, returns an array of bytes that is unique
+to the ASN1 structure of the certificate and does not depend on the contents of the certificate.
+*/
+//TODO TAKE NESTED NATURE INTO ACCOUNT
 func Parse(bytes []byte) (structure []byte) {
 	if bytes == nil {
 		return

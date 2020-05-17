@@ -99,7 +99,7 @@ func TestSum(t *testing.T) {
 	}
 
 	for _, table := range tables {
-		certDer, _ := base64.StdEncoding.DecodeString(csf.ParsePEM(table.cert))
+		certDer, _ := base64.StdEncoding.DecodeString(csf.PEMToBase64(table.cert))
 		csf := csf.Fingerprint(certDer)
 		if csf != table.csf {
 			t.Errorf("cshash of (%s) was incorrect, got: %s, want: %s.", table.cert, csf, table.csf)
