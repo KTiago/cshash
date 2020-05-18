@@ -160,8 +160,8 @@ func prettyPrint(data string) string{
 	return dst.String()
 }
 
-func FingerprintString(certDER []byte) string {
-	parsed := strings.Join(ParsePrintable(certDER), "")
+func Fingerprint(certDER []byte) string {
+	parsed := strings.Join(Parse(certDER), "")
 	//fmt.Println(parsed)
 	//fmt.Println(prettyPrint(parsed))
 	data := []byte(parsed)
@@ -169,18 +169,11 @@ func FingerprintString(certDER []byte) string {
 	return hex.EncodeToString(csf[:])
 }
 
-func Fingerprint(certDER []byte) string {
-	parsed := Parse(certDER)
-	csf := md5.Sum(parsed)
-	return hex.EncodeToString(csf[:])
-}
-
 /*
 Given the bytes of a DER encoded X.509 certificate, returns an array of bytes that is unique
 to the ASN1 structure of the certificate and does not depend on the contents of the certificate.
 */
-//TODO TAKE NESTED NATURE INTO ACCOUNT
-func ParsePrintable(bytes []byte) (structure []string) {
+func Parse(bytes []byte) (structure []string) {
 	if bytes == nil {
 		return
 	}
@@ -210,7 +203,7 @@ func ParsePrintable(bytes []byte) (structure []string) {
 			i += 1
 		}
 		if isKnownComposite(type_) { // For composite objects, recursively parse the inner data
-			parsed := ParsePrintable(bytes[i : i+length])
+			parsed := Parse(bytes[i : i+length])
 			structure = append(structure, ":")
 			structure = append(structure, parsed...)
 		} else if type_ == OBJECT_IDENTIFIER { // Adds content of object identifier
@@ -232,51 +225,4 @@ func ParsePrintable(bytes []byte) (structure []string) {
 	}
 	structure = append(structure, "}")
 	return structure
-}
-
-/*
-Given the bytes of a DER encoded X.509 certificate, returns an array of bytes that is unique
-to the ASN1 structure of the certificate and does not depend on the contents of the certificate.
-*/
-//TODO TAKE NESTED NATURE INTO ACCOUNT
-func Parse(bytes []byte) (structure []byte) {
-	if bytes == nil {
-		return
-	}
-	i := 0
-	includeObject := false
-	for {
-		if i == len(bytes) {
-			return
-		}
-		type_ := bytes[i]
-		structure = append(structure, type_)
-		i += 1
-		// Reads length of the value and increments cursor accordingly
-		length := 0
-		if bytes[i] < 128 {
-			length = int(bytes[i])
-			i += 1
-		} else if bytes[i] > 128 {
-			lengthLength := int(bytes[i] & 0x7f)
-			length = bytesToInt(bytes[i+1 : i+1+lengthLength])
-			i += lengthLength + 1
-		} else {
-			length = 0
-			i += 1
-		}
-		if isKnownComposite(type_) { // For composite objects, recursively parse the inner data
-			parsed := Parse(bytes[i : i+length])
-			structure = append(structure, parsed...)
-		} else if type_ == OBJECT_IDENTIFIER { // Adds content of object identifier
-			structure = append(structure, bytes[i:i+length]...)
-			if shouldBeIncluded(bytes[i : i+length]) { // For some specific objects, we include the content in the hash
-				includeObject = true
-			}
-		} else if (type_ == OCTET_STRING || type_ == BIT_STRING) && includeObject {
-			structure = append(structure, bytes[i:i+length]...)
-			includeObject = false
-		}
-		i += length
-	}
 }

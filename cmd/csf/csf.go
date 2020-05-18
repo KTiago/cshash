@@ -49,6 +49,6 @@ func main() {
 			}
 		}
 	}
-	csfDigest := csf.FingerprintString(certDER)
+	csfDigest := csf.Fingerprint(certDER)
 	fmt.Printf("%s\n",csfDigest)
 }
