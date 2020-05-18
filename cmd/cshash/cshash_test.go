@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/KTiago/csf"
+	"github.com/KTiago/cshash"
 	"testing"
 )
 
@@ -98,11 +98,11 @@ lRQOfc2VNNnSj3BzgXucfr2YYdhFh5iQxeuGMMY1v/D/w1WIg0vvBZIGcfK4mJO3
 	}
 
 	for _, table := range tables {
-		certDer, err := csf.PEMToDER(table.cert)
+		certDer, err := cshash.PEMToDER(table.cert)
 		if err != nil{
 			panic(err)
 		}
-		csf := csf.Fingerprint(certDer)
+		csf := cshash.Fingerprint(certDer)
 		if csf != table.csf {
 			t.Errorf("cshash of (%s) was incorrect, got: %s, want: %s.", table.cert, csf, table.csf)
 		}

@@ -1,4 +1,4 @@
-package csf
+package cshash
 
 import (
 	"bytes"
@@ -161,7 +161,7 @@ func prettyPrint(data string) string{
 }
 
 func Fingerprint(certDER []byte) string {
-	parsed := strings.Join(Parse(certDER), "")
+	parsed := strings.Join(ParseStructure(certDER), "")
 	//fmt.Println(parsed)
 	//fmt.Println(prettyPrint(parsed))
 	data := []byte(parsed)
@@ -173,7 +173,7 @@ func Fingerprint(certDER []byte) string {
 Given the bytes of a DER encoded X.509 certificate, returns an array of bytes that is unique
 to the ASN1 structure of the certificate and does not depend on the contents of the certificate.
 */
-func Parse(bytes []byte) (structure []string) {
+func ParseStructure(bytes []byte) (structure []string) {
 	if bytes == nil {
 		return
 	}
@@ -203,7 +203,7 @@ func Parse(bytes []byte) (structure []string) {
 			i += 1
 		}
 		if isKnownComposite(type_) { // For composite objects, recursively parse the inner data
-			parsed := Parse(bytes[i : i+length])
+			parsed := ParseStructure(bytes[i : i+length])
 			structure = append(structure, ":")
 			structure = append(structure, parsed...)
 		} else if type_ == OBJECT_IDENTIFIER { // Adds content of object identifier

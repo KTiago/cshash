@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/KTiago/csf"
+	"github.com/KTiago/cshash"
 	"io/ioutil"
 	"encoding/base64"
 )
@@ -43,12 +43,12 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			certDER, err = csf.PEMToDER(string(cert))
+			certDER, err = cshash.PEMToDER(string(cert))
 			if err != nil {
 				panic(err)
 			}
 		}
 	}
-	csfDigest := csf.Fingerprint(certDER)
-	fmt.Printf("%s\n",csfDigest)
+	CSHash := cshash.Fingerprint(certDER)
+	fmt.Printf("%s\n",CSHash)
 }

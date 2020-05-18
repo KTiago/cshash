@@ -4,7 +4,7 @@ test:
 	go test -v ./...
 
 build:
-	go build ./cmd/csf/
+	go build ./cmd/cshash/
 
 clean:
-	rm -f csf
+	rm -f cshash
