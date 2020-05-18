@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -21,7 +20,12 @@ const (
 	NULL              = 0x05
 	OBJECT_IDENTIFIER = 0x06
 	OBJECT_DESCRIPTOR = 0x07
+	EXTERNAL          = 0x08
+	REAL              = 0x09
 	PRINTABLE_STRING  = 0x13
+	IA5STRING         = 0x16
+	UTC_TIME          = 0x17
+	GENERALIZED_TIME  = 0x18
 	SEQUENCE          = 0x30
 	SET               = 0x31
 	VERSION           = 0xA0
@@ -46,13 +50,18 @@ var TYPE = map[int]string{
 	NULL : `"NULL"`,
 	OBJECT_IDENTIFIER : `"OBJECT_IDENTIFIER"`,
 	OBJECT_DESCRIPTOR : `"OBJECT_DESCRIPTOR"`,
+	EXTERNAL          : `"EXTERNAL"`,
+	REAL              : `"REAL"`,
+	PRINTABLE_STRING  : `"PRINTABLE_STRING"`,
+	IA5STRING         : `"IA5STRING"`,
+	UTC_TIME          : `"UTC_TIME"`,
+	GENERALIZED_TIME  : `"GENERALIZED_TIME"`,
 	SEQUENCE          : `"SEQUENCE"`,
 	SET               : `"SET"`,
 	VERSION           : `"VERSION"`,
 	ISSUER_UNIQUE_ID  : `"ISSUER_UNIQUE_ID"`,
 	SUBJECT_UNIQUE_ID : `"SUBJECT_UNIQUE_ID"`,
 	EXTENSION         : `"EXTENSION"`,
-	PRINTABLE_STRING  : `"PRINTABLE_STRING"`,
 }
 
 type ParseError struct {
@@ -123,6 +132,10 @@ func OIDToString(bytes []byte) string{
 	return result
 }
 
+func hexToString(bytes []byte) string{
+	return strings.ToUpper(hex.EncodeToString(bytes))
+}
+
 func PEMToBase64(cert string) string {
 	cert = strings.Replace(cert, "-BEGIN CERTIFICATE-", "", 1)
 	cert = strings.Replace(cert, "-END CERTIFICATE-", "", 1)
@@ -150,7 +163,7 @@ func prettyPrint(data string) string{
 func FingerprintString(certDER []byte) string {
 	parsed := strings.Join(ParsePrintable(certDER), "")
 	//fmt.Println(parsed)
-	fmt.Println(prettyPrint(parsed))
+	//fmt.Println(prettyPrint(parsed))
 	data := []byte(parsed)
 	csf := md5.Sum(data)
 	return hex.EncodeToString(csf[:])
@@ -206,8 +219,10 @@ func ParsePrintable(bytes []byte) (structure []string) {
 				includeObject = true
 			}
 		} else if (type_ == OCTET_STRING || type_ == BIT_STRING) && includeObject {
-			structure = append(structure, `:"`+hex.EncodeToString(bytes[i:i+length])+`"`)
+			structure = append(structure, `:"`+hexToString(bytes[i:i+length])+`"`)
 			includeObject = false
+		} else if type_ == BOOLEAN{
+			structure = append(structure, `:"`+hexToString(bytes[i:i+length])+`"`)
 		} else if type_ == NULL{
 			structure = append(structure, `:""`)
 		} else {
