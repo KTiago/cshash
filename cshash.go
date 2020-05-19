@@ -151,7 +151,7 @@ func PEMToDER(cert string) ([]byte, error){
 	return certDER, err
 }
 
-func prettyPrint(data string) string{
+func printJSON(data string) string{
 	src := []byte(data)
 	dst := &bytes.Buffer{}
 	if err := json.Indent(dst, src, "", "  "); err != nil {
@@ -160,10 +160,19 @@ func prettyPrint(data string) string{
 	return dst.String()
 }
 
+func ParseStructure(certDER []byte, prettyPrint bool) string{
+	parsed := strings.Join(ParseStructureRec(certDER), "")
+	if prettyPrint{
+		return printJSON(parsed)
+	} else{
+		return parsed
+	}
+}
+
 func Fingerprint(certDER []byte) string {
-	parsed := strings.Join(ParseStructure(certDER), "")
+	parsed := ParseStructure(certDER, false)
 	//fmt.Println(parsed)
-	//fmt.Println(prettyPrint(parsed))
+	//fmt.Println(printJSON(parsed))
 	data := []byte(parsed)
 	csf := md5.Sum(data)
 	return hex.EncodeToString(csf[:])
@@ -173,7 +182,7 @@ func Fingerprint(certDER []byte) string {
 Given the bytes of a DER encoded X.509 certificate, returns an array of bytes that is unique
 to the ASN1 structure of the certificate and does not depend on the contents of the certificate.
 */
-func ParseStructure(bytes []byte) (structure []string) {
+func ParseStructureRec(bytes []byte) (structure []string) {
 	if bytes == nil {
 		return
 	}
@@ -203,7 +212,7 @@ func ParseStructure(bytes []byte) (structure []string) {
 			i += 1
 		}
 		if isKnownComposite(type_) { // For composite objects, recursively parse the inner data
-			parsed := ParseStructure(bytes[i : i+length])
+			parsed := ParseStructureRec(bytes[i : i+length])
 			structure = append(structure, ":")
 			structure = append(structure, parsed...)
 		} else if type_ == OBJECT_IDENTIFIER { // Adds content of object identifier
