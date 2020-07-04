@@ -22,6 +22,7 @@ const (
 	OBJECT_DESCRIPTOR = 0x07
 	EXTERNAL          = 0x08
 	REAL              = 0x09
+	UTF8_STRING       = 0x0C
 	PRINTABLE_STRING  = 0x13
 	IA5STRING         = 0x16
 	UTC_TIME          = 0x17
@@ -52,6 +53,7 @@ var TYPE = map[int]string{
 	OBJECT_DESCRIPTOR : `"OBJECT_DESCRIPTOR"`,
 	EXTERNAL          : `"EXTERNAL"`,
 	REAL              : `"REAL"`,
+	UTF8_STRING       : `"UTF8_STRING"`,
 	PRINTABLE_STRING  : `"PRINTABLE_STRING"`,
 	IA5STRING         : `"IA5STRING"`,
 	UTC_TIME          : `"UTC_TIME"`,
@@ -87,7 +89,8 @@ func byteToString(value byte) string{
 func shouldBeIncluded(identifier []byte) bool {
 	int_identifier := bytesToInt(identifier)
 	switch int_identifier {
-	case KEY_USAGE, EXT_KEY_USAGE, BASIC_CONSTRAINTS, AUTHORITY_INFO_ACCESS, CERTIFICATE_POLICIES, CRL_DISTRIBUTION_POINTS:
+	//case KEY_USAGE, EXT_KEY_USAGE, BASIC_CONSTRAINTS, AUTHORITY_INFO_ACCESS, CERTIFICATE_POLICIES, CRL_DISTRIBUTION_POINTS:
+	case KEY_USAGE, EXT_KEY_USAGE, BASIC_CONSTRAINTS:
 		return true
 	}
 	return false
