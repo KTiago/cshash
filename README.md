@@ -21,105 +21,94 @@ $ ./cshash -i example.pem
 759eedf155aa5a24e49bd1f00eea5bfb
 ```
 ## Example
-Below is the extracted structure of a self-signed certificate for "C=AU, O=Internet Widgits Pty Ltd, CN=example.com" in an JSON-like format. The CSHash is the md5 hash over the below string where spaces and line returns have been removed.
+Below is the extracted structure of an example self-signed certificate for "C=XX, L=Default City, O=Default Company Ltd" in an JSON-like format. The CSHash is the md5 hash over the below string where spaces and line returns have been removed.
 ```
+$ ./cshash -i example.pem --struct --pretty
 {
-  "SEQUENCE": {
-    "SEQUENCE": {
-      "VERSION": {
-        "INTEGER": "REMOVED"
+  SEQUENCE: {
+    SEQUENCE: {
+      VERSION: {
+        INTEGER: ∅
       },
-      "INTEGER": "REMOVED",
-      "SEQUENCE": {
-        "OBJECT_IDENTIFIER": "1.2.840.113549.1.1.11",
-        "NULL": ""
+      INTEGER: ∅,
+      SEQUENCE: {
+        OBJECT_IDENTIFIER: 1.2.840.113549.1.1.11,
+        NULL: ∅
       },
-      "SEQUENCE": {
-        "SET": {
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.4.6",
-            "PRINTABLE_STRING": "REMOVED"
+      SEQUENCE: {
+        SET: {
+          SEQUENCE: {
+            OBJECT_IDENTIFIER: 2.5.4.6,
+            PRINTABLE_STRING: ∅
           }
         },
-        "SET": {
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.4.8",
-            "UNKNOWN": "REMOVED"
+        SET: {
+          SEQUENCE: {
+            OBJECT_IDENTIFIER: 2.5.4.7,
+            UTF8_STRING: ∅
           }
         },
-        "SET": {
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.4.10",
-            "UNKNOWN": "REMOVED"
-          }
-        },
-        "SET": {
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.4.3",
-            "UNKNOWN": "REMOVED"
+        SET: {
+          SEQUENCE: {
+            OBJECT_IDENTIFIER: 2.5.4.10,
+            UTF8_STRING: ∅
           }
         }
       },
-      "SEQUENCE": {
-        "UTC_TIME": "REMOVED",
-        "UTC_TIME": "REMOVED"
+      SEQUENCE: {
+        UTC_TIME: ∅,
+        UTC_TIME: ∅
       },
-      "SEQUENCE": {
-        "SET": {
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.4.6",
-            "PRINTABLE_STRING": "REMOVED"
+      SEQUENCE: {
+        SET: {
+          SEQUENCE: {
+            OBJECT_IDENTIFIER: 2.5.4.6,
+            PRINTABLE_STRING: ∅
           }
         },
-        "SET": {
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.4.8",
-            "UNKNOWN": "REMOVED"
+        SET: {
+          SEQUENCE: {
+            OBJECT_IDENTIFIER: 2.5.4.7,
+            UTF8_STRING: ∅
           }
         },
-        "SET": {
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.4.10",
-            "UNKNOWN": "REMOVED"
-          }
-        },
-        "SET": {
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.4.3",
-            "UNKNOWN": "REMOVED"
+        SET: {
+          SEQUENCE: {
+            OBJECT_IDENTIFIER: 2.5.4.10,
+            UTF8_STRING: ∅
           }
         }
       },
-      "SEQUENCE": {
-        "SEQUENCE": {
-          "OBJECT_IDENTIFIER": "1.2.840.113549.1.1.1",
-          "NULL": ""
+      SEQUENCE: {
+        SEQUENCE: {
+          OBJECT_IDENTIFIER: 1.2.840.113549.1.1.1,
+          NULL: ∅
         },
-        "BIT_STRING": "REMOVED"
+        BIT_STRING: ∅
       },
-      "EXTENSION": {
-        "SEQUENCE": {
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.29.14",
-            "OCTET_STRING": "REMOVED"
+      EXTENSION: {
+        SEQUENCE: {
+          SEQUENCE: {
+            OBJECT_IDENTIFIER: 2.5.29.14,
+            OCTET_STRING: ∅
           },
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.29.35",
-            "OCTET_STRING": "REMOVED"
+          SEQUENCE: {
+            OBJECT_IDENTIFIER: 2.5.29.35,
+            OCTET_STRING: ∅
           },
-          "SEQUENCE": {
-            "OBJECT_IDENTIFIER": "2.5.29.19",
-            "BOOLEAN": "FF",
-            "OCTET_STRING": "30030101FF"
+          SEQUENCE: {
+            OBJECT_IDENTIFIER: 2.5.29.19,
+            BOOLEAN: ∅,
+            OCTET_STRING: ∅
           }
         }
       }
     },
-    "SEQUENCE": {
-      "OBJECT_IDENTIFIER": "1.2.840.113549.1.1.11",
-      "NULL": ""
+    SEQUENCE: {
+      OBJECT_IDENTIFIER: 1.2.840.113549.1.1.11,
+      NULL: ∅
     },
-    "BIT_STRING": "REMOVED"
+    BIT_STRING: ∅
   }
 }
 ```
