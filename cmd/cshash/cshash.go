@@ -52,8 +52,12 @@ func main() {
 		}
 	}
 	if *structureOnly{
-		certStructure := cshash.ParseStructure(certDER, *pretty)
-		fmt.Printf("%s\n",certStructure)
+		certStructure, err := cshash.ParseStructure(certDER, *pretty)
+		if err == nil{
+			fmt.Printf("%s\n",certStructure)
+		} else{
+			fmt.Printf("parsing error\n")
+		}
 	}else{
 		CSHash := cshash.Fingerprint(certDER)
 		fmt.Printf("%s\n",CSHash)

@@ -74,8 +74,22 @@ func (e *ParseError) Error() string {
 	return e.Msg
 }
 
-func new(text string) error {
-	return &ParseError{text}
+type Byte byte
+
+func safeGet(array []byte, index int) (byte, error){
+	if index >= 0 && index < len(array){
+		return array[index], nil
+	}else{
+		return 0, &ParseError{"index out of bounds"}
+	}
+}
+
+func safeSlice(array []byte, low int, high int) ([]byte, error){
+	if 0 <= low && low <= high && high <= len(array){
+		return array[low:high], nil
+	}else{
+		return nil, &ParseError{"index out of bounds"}
+	}
 }
 
 func byteToString(value byte) string{
@@ -163,19 +177,24 @@ func printJSON(data string) string{
 	return dst.String()
 }
 
-func ParseStructure(certDER []byte, prettyPrint bool) string{
-	parsed := strings.Join(ParseStructureRec(certDER), "")
+func ParseStructure(certDER []byte, prettyPrint bool) (string, error){
+	structure, err := ParseStructureRec(certDER)
+	if err != nil{
+		return "", err
+	}
+	parsed := strings.Join(structure, "")
 	if prettyPrint{
-		return printJSON(parsed)
+		return printJSON(parsed), nil
 	} else{
-		return parsed
+		return parsed, nil
 	}
 }
 
 func Fingerprint(certDER []byte) string {
-	parsed := ParseStructure(certDER, false)
-	//fmt.Println(parsed)
-	//fmt.Println(printJSON(parsed))
+	parsed, err := ParseStructure(certDER, false)
+	if err != nil{
+		return "parsing error"
+	}
 	data := []byte(parsed)
 	csf := md5.Sum(data)
 	return hex.EncodeToString(csf[:])
@@ -185,7 +204,7 @@ func Fingerprint(certDER []byte) string {
 Given the bytes of a DER encoded X.509 certificate, returns an array of bytes that is unique
 to the ASN1 structure of the certificate and does not depend on the contents of the certificate.
 */
-func ParseStructureRec(bytes []byte) (structure []string) {
+func ParseStructureRec(bytes []byte) (structure []string, err error) {
 	if bytes == nil {
 		return
 	}
@@ -198,36 +217,63 @@ func ParseStructureRec(bytes []byte) (structure []string) {
 		} else if i != 0{
 			structure = append(structure, ",")
 		}
-		type_ := bytes[i]
+
+		type_, err := safeGet(bytes, i)
+		if err != nil{
+			return nil, err
+		}
+
 		structure = append(structure, byteToString(type_))
 		i += 1
+
 		// Reads length of the value and increments cursor accordingly
 		length := 0
-		if bytes[i] < 128 {
-			length = int(bytes[i])
+
+		firstByte, err := safeGet(bytes, i)
+		if err != nil{
+			return nil, err
+		}
+
+		if firstByte < 128 {
+			length = int(firstByte)
 			i += 1
-		} else if bytes[i] > 128 {
-			lengthLength := int(bytes[i] & 0x7f)
-			length = bytesToInt(bytes[i+1 : i+1+lengthLength])
+		} else if firstByte > 128 {
+			lengthLength := int(firstByte & 0x7f)
+
+			slice, err := safeSlice(bytes, i+1, i+1+lengthLength)
+			if err != nil{
+				return nil, err
+			}
+
+			length = bytesToInt(slice)
 			i += lengthLength + 1
 		} else {
 			length = 0
 			i += 1
 		}
+
+		value, err := safeSlice(bytes, i, i+length)
+		if err != nil{
+			return nil, err
+		}
+
 		if isKnownComposite(type_) { // For composite objects, recursively parse the inner data
-			parsed := ParseStructureRec(bytes[i : i+length])
+			parsed, err := ParseStructureRec(value)
+			if err != nil{
+				return nil, err
+			}
 			structure = append(structure, ":")
 			structure = append(structure, parsed...)
 		} else if type_ == OBJECT_IDENTIFIER { // Adds content of object identifier
-			structure = append(structure, `:"`+OIDToString(bytes[i:i+length])+`"`)
-			if shouldBeIncluded(bytes[i : i+length]) { // For some specific objects, we include the content in the hash
+			structure = append(structure, `:"`+OIDToString(value)+`"`)
+			if shouldBeIncluded(value) { // For some specific objects, we include the content in the hash
 				includeObject = true
 			}
 		} else if (type_ == OCTET_STRING || type_ == BIT_STRING) && includeObject {
-			structure = append(structure, `:"`+hexToString(bytes[i:i+length])+`"`)
+			structure = append(structure, `:"`+hexToString(value)+`"`)
 			includeObject = false
 		} else if type_ == BOOLEAN{
-			structure = append(structure, `:"`+hexToString(bytes[i:i+length])+`"`)
+			structure = append(structure, `:"`+hexToString(value)+`"`)
 		} else if type_ == NULL{
 			structure = append(structure, `:""`)
 		} else {
@@ -236,5 +282,5 @@ func ParseStructureRec(bytes []byte) (structure []string) {
 		i += length
 	}
 	structure = append(structure, "}")
-	return structure
+	return structure, nil
 }
