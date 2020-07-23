@@ -100,15 +100,6 @@ func byteToString(value byte) string{
 	return `"UNKNOWN"`
 }
 
-func shouldBeIncluded(identifier []byte) bool {
-	int_identifier := bytesToInt(identifier)
-	switch int_identifier {
-	//case KEY_USAGE, EXT_KEY_USAGE, BASIC_CONSTRAINTS, AUTHORITY_INFO_ACCESS, CERTIFICATE_POLICIES, CRL_DISTRIBUTION_POINTS:
-	case KEY_USAGE, EXT_KEY_USAGE, BASIC_CONSTRAINTS:
-		return true
-	}
-	return false
-}
 
 func isKnownComposite(value byte) bool {
 	switch value {
@@ -184,9 +175,9 @@ func ParseStructure(certDER []byte, prettyPrint bool) (string, error){
 	}
 	parsed := strings.Join(structure, "")
 	if prettyPrint{
-		return printJSON(parsed), nil
+		return strings.ReplaceAll(printJSON(parsed), "\"", ""), nil
 	} else{
-		return parsed, nil
+		return strings.ReplaceAll(parsed, "\"", ""), nil
 	}
 }
 
@@ -195,6 +186,7 @@ func Fingerprint(certDER []byte) string {
 	if err != nil{
 		return "parsing error"
 	}
+	parsed = strings.ReplaceAll(parsed, "\"", "")
 	data := []byte(parsed)
 	csf := md5.Sum(data)
 	return hex.EncodeToString(csf[:])
@@ -209,7 +201,6 @@ func ParseStructureRec(bytes []byte) (structure []string, err error) {
 		return
 	}
 	i := 0
-	includeObject := false
 	structure = append(structure, "{")
 	for {
 		if i == len(bytes) {
@@ -266,18 +257,8 @@ func ParseStructureRec(bytes []byte) (structure []string, err error) {
 			structure = append(structure, parsed...)
 		} else if type_ == OBJECT_IDENTIFIER { // Adds content of object identifier
 			structure = append(structure, `:"`+OIDToString(value)+`"`)
-			if shouldBeIncluded(value) { // For some specific objects, we include the content in the hash
-				includeObject = true
-			}
-		} else if (type_ == OCTET_STRING || type_ == BIT_STRING) && includeObject {
-			structure = append(structure, `:"`+hexToString(value)+`"`)
-			includeObject = false
-		} else if type_ == BOOLEAN{
-			structure = append(structure, `:"`+hexToString(value)+`"`)
-		} else if type_ == NULL{
-			structure = append(structure, `:""`)
 		} else {
-			structure = append(structure, `:"REMOVED"`)
+			structure = append(structure, `:"∅"`)
 		}
 		i += length
 	}

@@ -11,7 +11,7 @@ import (
 var (
 	input  = flag.String("i", "-", "Input file")
 	format = flag.String("inform", "base64", "Input format - (one of base64, PEM or DER)")
-	structureOnly = flag.Bool("struct_only", false, "Set to true to receive the string representation of the certificate structure instead of the hash")
+	structureOnly = flag.Bool("struct", false, "Set to true to receive the string representation of the certificate structure instead of the hash")
 	pretty = flag.Bool("pretty", false, "When set to true and struct_only=true, the returned certificate structure is nicely formatted for improved readability")
 )
 
