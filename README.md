@@ -1,10 +1,11 @@
 # CSHash
 ## Certificate Structure Hash library and command line tool in Go.
 
-CSHash is a unique value computed from the structure of a given X.509 (TLS) certificates. This can be used to identify different certificates generated using the same libraries or scripts, since such certificates tend to have similar structures but different contents.
+Certificate Structure Hash (CSHash) is an algorithm to fingerprint the structure of X.509 (TLS) certificates. This repository contains both the source code to use CSHash as command line tool or as a go library.
 
-A CSHash is computed in two steps. First, the ASN.1 structure of the certificate is extracted in the form of a JSON-like string. Then, the md5 hash is computed over the string to produce easily shareable, fixed-length values.
+It can be used to identify different certificates generated using the same libraries or scripts, since such certificates tend to have similar structures but different contents. The main use-case that we developed CSHash for is to fingerprint malicious certificates.
 
+The CSHash algorithm takes a raw certificate as input in DER or PEM (base64 encoded DER) format and deterministically produces a 128-bit digest that is unique to the certificate structure. The algorithm parses the certificate and maps it to a JSON-like string that captures the certificate structure but abstracts away the contents. Then, an md5 hash is computed over that string to produce a fixed-length output.
 ## Building
 The following command requires the `$GOPATH` environment variable to be set. It will download the package to your workspace.
 ```
