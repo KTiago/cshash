@@ -8,14 +8,14 @@ A CSHash is computed in two steps. First, the ASN.1 structure of the certificate
 ## Building
 The following command requires the `$GOPATH` environment variable to be set. It will download the package to your workspace.
 ```
-$ go get github.com/KTiago/CSHash
+$ go get github.com/KTiago/cshash
 ```
 You can build the project with the following commands.
 ```
-$ cd $GOPATH/src/github.com/KTiago/CSHash
+$ cd $GOPATH/src/github.com/KTiago/cshash
 $ make build
 ```
-This will create the executable `cshash` in the folder `$GOPATH/src/github.com/KTiago/CSHash`. You are ready to compute the CSHash of a certificate.
+This will create the executable `cshash` in the folder `$GOPATH/src/github.com/KTiago/cshash`. You are ready to compute the CSHash of a certificate.
 ```
 $ ./cshash -i example.pem
 759eedf155aa5a24e49bd1f00eea5bfb
