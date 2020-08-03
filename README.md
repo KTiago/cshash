@@ -21,6 +21,11 @@ This will create the executable `cshash` in the folder `$GOPATH/src/github.com/K
 $ ./cshash -i example.pem
 759eedf155aa5a24e49bd1f00eea5bfb
 ```
+## Usage
+To display a guide on the usage of CSHash run the following command.
+```
+$ ./cshash --help
+```
 ## Example
 Below is the extracted structure of an example self-signed certificate for "C=XX, L=Default City, O=Default Company Ltd" in an JSON-like format. The CSHash is the md5 hash over the below string where spaces and line returns have been removed.
 ```
